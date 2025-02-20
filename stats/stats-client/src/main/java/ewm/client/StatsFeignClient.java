@@ -1,14 +1,13 @@
 package ewm.client;
 
 import ewm.dto.EndpointHitDto;
-import ewm.dto.RequestParamDto;
 import ewm.dto.ViewStatsDto;
 import jakarta.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -18,6 +17,9 @@ public interface StatsFeignClient {
     void hit(@Valid @RequestBody EndpointHitDto endpointHitDto);
 
     @GetMapping("/stats")
-    List<ViewStatsDto> stats(@Valid @ModelAttribute RequestParamDto requestParamDto);
+    List<ViewStatsDto> stats(@RequestParam("start") String start,
+                             @RequestParam("end") String end,
+                             @RequestParam("uris") List<String> uris,
+                             @RequestParam("unique") boolean unique);
 
 }

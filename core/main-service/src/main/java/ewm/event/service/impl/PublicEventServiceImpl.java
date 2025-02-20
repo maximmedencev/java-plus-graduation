@@ -83,7 +83,7 @@ public class PublicEventServiceImpl implements PublicEventService {
         LocalDateTime start = now.minusYears(10);
 
         statRestClient.stats(start, now, List.of("/events/" + eventId), true)
-                .forEach(viewStatsDto -> event.setViews(viewStatsDto.getHits() + event.getViews()));
+                .forEach(viewStatsDto -> event.setViews(viewStatsDto.getHits()));
 
         long confirmedRequests = requestRepository.countAllByEventIdAndStatusIs(eventId, RequestStatus.CONFIRMED);
         event.setConfirmedRequests(confirmedRequests);

@@ -11,12 +11,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -24,6 +26,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class StatController implements StatsFeignClient {
     final StatService statService;
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @PostMapping("/hit")
     @ResponseStatus(HttpStatus.CREATED)
@@ -33,7 +36,12 @@ public class StatController implements StatsFeignClient {
 
     @GetMapping("/stats")
     @ResponseStatus(HttpStatus.OK)
-    public List<ViewStatsDto> stats(@Valid @ModelAttribute RequestParamDto requestParamDto) {
+    public List<ViewStatsDto> stats(@RequestParam("start") String start,
+                                    @RequestParam("end") String end,
+                                    @RequestParam(value = "uris", required = false) List<String> uris,
+                                    @RequestParam(value = "unique", required = false) boolean unique) {
+        RequestParamDto requestParamDto = new RequestParamDto(LocalDateTime.parse(start, formatter),
+                LocalDateTime.parse(end, formatter), uris, unique);
         return statService.stats(requestParamDto);
     }
 }

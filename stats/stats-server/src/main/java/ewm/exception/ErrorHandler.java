@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
+import org.springframework.web.server.MissingRequestValueException;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -14,7 +15,7 @@ import java.io.StringWriter;
 @Slf4j
 @RestControllerAdvice
 public class ErrorHandler {
-    @ExceptionHandler({ValidationException.class, WebExchangeBindException.class})
+    @ExceptionHandler({ValidationException.class, WebExchangeBindException.class, MissingRequestValueException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError validationException(Exception exception) {
         log.warn("Статус 400 -  {}", exception.getMessage(), exception);
