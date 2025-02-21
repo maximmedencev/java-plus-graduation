@@ -44,7 +44,7 @@ public class PublicEventServiceImpl implements PublicEventService {
     final EventMapper eventMapper;
     final JPAQueryFactory jpaQueryFactory;
 
-    private final int TIME_BEFORE = 10;
+    private static final int TIME_BEFORE = 10;
 
     @Override
     public List<EventShortDto> getAllBy(PublicEventParam eventParam, Pageable pageRequest) {
