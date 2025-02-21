@@ -44,6 +44,8 @@ public class PublicEventServiceImpl implements PublicEventService {
     final EventMapper eventMapper;
     final JPAQueryFactory jpaQueryFactory;
 
+    private final int TIME_BEFORE = 10;
+
     @Override
     public List<EventShortDto> getAllBy(PublicEventParam eventParam, Pageable pageRequest) {
         BooleanBuilder eventQueryExpression = buildExpression(eventParam);
@@ -80,7 +82,7 @@ public class PublicEventServiceImpl implements PublicEventService {
         }
 
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime start = now.minusYears(10);
+        LocalDateTime start = now.minusYears(TIME_BEFORE);
 
         statRestClient.stats(start, now, List.of("/events/" + eventId), true)
                 .forEach(viewStatsDto -> event.setViews(viewStatsDto.getHits()));
@@ -90,7 +92,7 @@ public class PublicEventServiceImpl implements PublicEventService {
         return event;
     }
 
-    Map<Long, Long> getConfirmedRequestsMap(List<Long> eventIds) {
+    private Map<Long, Long> getConfirmedRequestsMap(List<Long> eventIds) {
         QParticipationRequest qRequest = QParticipationRequest.participationRequest;
 
         return jpaQueryFactory
@@ -106,7 +108,7 @@ public class PublicEventServiceImpl implements PublicEventService {
                 );
     }
 
-    List<EventShortDto> getEvents(Pageable pageRequest, BooleanBuilder eventQueryExpression) {
+    private List<EventShortDto> getEvents(Pageable pageRequest, BooleanBuilder eventQueryExpression) {
         return jpaQueryFactory
                 .selectFrom(QEvent.event)
                 .leftJoin(QEvent.event.category, QCategory.category)
@@ -121,7 +123,7 @@ public class PublicEventServiceImpl implements PublicEventService {
                 .toList();
     }
 
-    BooleanBuilder buildExpression(PublicEventParam eventParam) {
+    private BooleanBuilder buildExpression(PublicEventParam eventParam) {
         BooleanBuilder eventQueryExpression = new BooleanBuilder();
 
         eventQueryExpression.and(QEvent.event.state.eq(EventState.PUBLISHED));

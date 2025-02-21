@@ -117,7 +117,7 @@ public class PrivateEventServiceImpl implements PrivateEventService {
         return eventMapper.toEventFullDto(eventMapper.toUpdatedEvent(event, updateEventUserRequest, category));
     }
 
-    Map<Long, Long> getConfirmedRequestsMap(List<Long> eventIds) {
+    private Map<Long, Long> getConfirmedRequestsMap(List<Long> eventIds) {
         QParticipationRequest qRequest = QParticipationRequest.participationRequest;
 
         return jpaQueryFactory
@@ -133,7 +133,7 @@ public class PrivateEventServiceImpl implements PrivateEventService {
                 );
     }
 
-    List<EventShortDto> getEvents(Pageable pageRequest, BooleanExpression eventQueryExpression) {
+    private List<EventShortDto> getEvents(Pageable pageRequest, BooleanExpression eventQueryExpression) {
         return jpaQueryFactory
                 .selectFrom(QEvent.event)
                 .leftJoin(QEvent.event.category, QCategory.category)

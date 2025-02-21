@@ -18,7 +18,7 @@ public class ErrorHandler {
     @ExceptionHandler({ValidationException.class, WebExchangeBindException.class, MissingRequestValueException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError validationException(Exception exception) {
-        log.warn("Статус 400 -  {}", exception.getMessage(), exception);
+        log.error("Статус 400 -  {}", exception.getMessage(), exception);
         StringWriter writer = new StringWriter();
         PrintWriter printWriter = new PrintWriter(writer);
         exception.printStackTrace(printWriter);
@@ -29,7 +29,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiError internalServerException(Exception exception) {
-        log.warn("Статус 500 - Internal Error {}", exception.getMessage(), exception);
+        log.error("Статус 500 - Internal Error {}", exception.getMessage(), exception);
         StringWriter writer = new StringWriter();
         PrintWriter printWriter = new PrintWriter(writer);
         exception.printStackTrace(printWriter);

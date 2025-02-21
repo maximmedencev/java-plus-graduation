@@ -90,7 +90,7 @@ public class AdminEventServiceImpl implements AdminEventService {
         return eventMapper.toEventFullDto(event);
     }
 
-    Map<Long, Long> getConfirmedRequestsMap(List<Long> eventIds) {
+    private Map<Long, Long> getConfirmedRequestsMap(List<Long> eventIds) {
         QParticipationRequest qRequest = QParticipationRequest.participationRequest;
         return jpaQueryFactory
                 .select(qRequest.event.id.as("eventId"), qRequest.count().as("confirmedRequests"))
@@ -105,7 +105,7 @@ public class AdminEventServiceImpl implements AdminEventService {
                 );
     }
 
-    List<EventFullDto> getEvents(Pageable pageRequest, BooleanBuilder eventQueryExpression) {
+    private List<EventFullDto> getEvents(Pageable pageRequest, BooleanBuilder eventQueryExpression) {
         return jpaQueryFactory
                 .selectFrom(QEvent.event)
                 .leftJoin(QEvent.event.category, QCategory.category)
@@ -120,7 +120,7 @@ public class AdminEventServiceImpl implements AdminEventService {
                 .toList();
     }
 
-    BooleanBuilder buildBooleanExpression(AdminEventParam eventParam) {
+    private BooleanBuilder buildBooleanExpression(AdminEventParam eventParam) {
         BooleanBuilder eventQueryExpression = new BooleanBuilder();
 
         QEvent qEvent = QEvent.event;
