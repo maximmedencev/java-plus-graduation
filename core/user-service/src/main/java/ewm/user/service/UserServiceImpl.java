@@ -1,9 +1,10 @@
 package ewm.user.service;
 
 import com.querydsl.core.BooleanBuilder;
+import ewm.interaction.dto.user.NewUserRequest;
+import ewm.interaction.dto.user.UserDto;
+import ewm.interaction.dto.user.UserShortDto;
 import ewm.interaction.exception.NotFoundException;
-import ewm.user.dto.NewUserRequest;
-import ewm.user.dto.UserDto;
 import ewm.user.mappers.UserMapper;
 import ewm.user.model.QUser;
 import ewm.user.model.User;
@@ -17,6 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +47,21 @@ public class UserServiceImpl implements UserService {
 
         Page<User> usersPage = userRepository.findAll(booleanBuilder, pageRequest);
         return usersPage.map(userMapper::toUserDto).toList();
+    }
+
+    @Override
+    public Map<Long, UserShortDto> findAllBy(List<Long> ids) {
+        BooleanBuilder booleanBuilder = new BooleanBuilder();
+
+        if (ids != null && !ids.isEmpty()) {
+            booleanBuilder.and(QUser.user.id.in(ids));
+        }
+        return StreamSupport
+                .stream(userRepository.findAll(booleanBuilder).spliterator(), false)
+                .collect(Collectors.toMap(
+                        User::getId,
+                        userMapper::toUserShortDto
+                ));
     }
 
     @Override

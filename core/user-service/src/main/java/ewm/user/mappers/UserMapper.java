@@ -1,8 +1,9 @@
 package ewm.user.mappers;
 
-import ewm.user.dto.NewUserRequest;
-import ewm.user.dto.UserDto;
-import ewm.user.dto.UserShortDto;
+
+import ewm.interaction.dto.user.NewUserRequest;
+import ewm.interaction.dto.user.UserDto;
+import ewm.interaction.dto.user.UserShortDto;
 import ewm.user.model.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -17,4 +18,5 @@ public interface UserMapper {
     UserDto toUserDto(User user);
 
     UserShortDto toUserShortDto(User user);
+
 }

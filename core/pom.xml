@@ -16,6 +16,9 @@
         <module>main-service</module>
         <module>user-service</module>
         <module>interaction-api</module>
+        <module>subscription-service</module>
+        <module>request-service</module>
+        <module>event-and-additional-service</module>
     </modules>
 
 </project>

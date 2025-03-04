@@ -1,7 +1,10 @@
 package ewm.user.controller;
 
-import ewm.user.dto.NewUserRequest;
-import ewm.user.dto.UserDto;
+
+import ewm.interaction.dto.user.NewUserRequest;
+import ewm.interaction.dto.user.UserDto;
+import ewm.interaction.dto.user.UserShortDto;
+import ewm.interaction.feign.UserFeignClient;
 import ewm.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -20,12 +23,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin/users")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserController {
+public class UserController implements UserFeignClient {
     final UserService userService;
 
     @PostMapping
@@ -39,6 +43,11 @@ public class UserController {
                                    @RequestParam(defaultValue = "0") int from,
                                    @RequestParam(defaultValue = "10") int size) {
         return userService.findAllBy(ids, PageRequest.of(from, size));
+    }
+
+    @GetMapping("/mapped")
+    public Map<Long, UserShortDto> userMapBy(@RequestParam List<Long> ids) {
+        return userService.findAllBy(ids);
     }
 
     @DeleteMapping("/{userId}")

@@ -24,6 +24,7 @@ public interface EventMapper {
     Event toEvent(NewEventDto newEventDto, User initiator, Category category);
 
     @Mapping(target = "confirmedRequests", ignore = true)
+    @Mapping(target = "views", ignore = true)
     EventFullDto toEventFullDto(Event event);
 
     @Mapping(target = "id", ignore = true)

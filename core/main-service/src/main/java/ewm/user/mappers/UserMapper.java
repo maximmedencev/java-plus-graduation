@@ -1,7 +1,5 @@
 package ewm.user.mappers;
 
-import ewm.category.mapper.CategoryMapper;
-import ewm.event.mappers.EventMapper;
 import ewm.user.dto.NewUserRequest;
 import ewm.user.dto.UserDto;
 import ewm.user.dto.UserShortDto;
