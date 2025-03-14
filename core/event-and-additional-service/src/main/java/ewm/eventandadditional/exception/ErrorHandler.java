@@ -2,6 +2,7 @@ package ewm.eventandadditional.exception;
 
 import ewm.interaction.exception.ApiError;
 import ewm.interaction.exception.ConflictException;
+import ewm.interaction.exception.NoRequestException;
 import ewm.interaction.exception.NotFoundException;
 import ewm.interaction.exception.ValidationException;
 import ewm.interaction.exception.WrongSortMethodException;
@@ -26,7 +27,8 @@ import java.time.LocalDateTime;
 @RestControllerAdvice
 public class ErrorHandler {
     @ExceptionHandler({IllegalArgumentException.class, MethodArgumentNotValidException.class,
-            ConstraintViolationException.class, WebExchangeBindException.class, MissingServletRequestParameterException.class})
+            ConstraintViolationException.class, WebExchangeBindException.class,
+            MissingServletRequestParameterException.class, NoRequestException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleMethodArgumentValidException(Exception exception) {
         StringWriter stringWriter = new StringWriter();

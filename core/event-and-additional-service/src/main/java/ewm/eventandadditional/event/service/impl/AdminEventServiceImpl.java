@@ -2,8 +2,6 @@ package ewm.eventandadditional.event.service.impl;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import ewm.client.StatRestClient;
-import ewm.dto.ViewStatsDto;
 import ewm.eventandadditional.category.model.Category;
 import ewm.eventandadditional.category.model.QCategory;
 import ewm.eventandadditional.event.mappers.EventMapper;
@@ -43,7 +41,6 @@ public class AdminEventServiceImpl implements AdminEventService {
     final EventRepository eventRepository;
     final EventMapper eventMapper;
     final JPAQueryFactory jpaQueryFactory;
-    final StatRestClient statRestClient;
     final RequestFeignClient requestFeignClient;
     final UserFeignClient userFeignClient;
 
@@ -64,12 +61,12 @@ public class AdminEventServiceImpl implements AdminEventService {
                 .orElseThrow(() -> new NotFoundException("Даты не заданы"))
                 .getEventDate();
 
-        Map<String, Long> viewMap = statRestClient
-                .stats(start, LocalDateTime.now(), uris.stream().toList(), false).stream()
-                .collect(Collectors.groupingBy(ViewStatsDto::getUri, Collectors.summingLong(ViewStatsDto::getHits)));
+//        Map<String, Long> viewMap = statRestClient
+//                .stats(start, LocalDateTime.now(), uris.stream().toList(), false).stream()
+//                .collect(Collectors.groupingBy(ViewStatsDto::getUri, Collectors.summingLong(ViewStatsDto::getHits)));
 
         return events.stream().peek(shortDto -> {
-            shortDto.setViews(viewMap.getOrDefault("/events/" + shortDto.getId(), 0L));
+            //shortDto.setViews(viewMap.getOrDefault("/events/" + shortDto.getId(), 0L));
             shortDto.setConfirmedRequests(confirmedRequestsMap.getOrDefault(shortDto.getId(), 0L));
         }).toList();
     }

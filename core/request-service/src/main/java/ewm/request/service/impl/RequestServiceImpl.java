@@ -45,4 +45,11 @@ public class RequestServiceImpl implements RequestService {
     public Long countAllByEventIdAndStatusIs(Long eventId, String requestStatus) {
         return requestRepository.countAllByEventIdAndStatusIs(eventId, RequestStatus.valueOf(requestStatus));
     }
+
+    @Override
+    public boolean isRequestExist(long userId, long eventId) {
+        return requestRepository.existsByEventIdAndRequesterId(eventId, userId);
+    }
+
+
 }

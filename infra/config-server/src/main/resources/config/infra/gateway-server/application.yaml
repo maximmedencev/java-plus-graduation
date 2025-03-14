@@ -89,5 +89,9 @@ spring:
           uri: lb://event-and-additional-service
           predicates:
             - Path=/admin/compilations/{compId}
+        - id: like_event_service_route
+          uri: lb://event-and-additional-service
+          predicates:
+            - Path=/events/{eventId}/like
 server:
   port: 8080
