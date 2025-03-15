@@ -7,3 +7,5 @@ kafka:
   value-deserializer: "ru.practicum.stats.aggregator.UserActionAvroDeserializer"
   key-serializer: "org.apache.kafka.common.serialization.StringSerializer"
   value-serializer: "ru.practicum.stats.aggregator.EventSimilarityAvroSerializer"
+  consumer-group-id: "groupAggregatorConsumer"
+  auto-offset-reset: "earliest"

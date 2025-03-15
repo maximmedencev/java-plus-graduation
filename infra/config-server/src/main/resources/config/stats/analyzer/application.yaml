@@ -21,3 +21,6 @@ kafka:
   key-deserializer: "org.apache.kafka.common.serialization.StringDeserializer"
   value-deserializer-similarity: "ru.practicum.ewm.stats.analyzer.EventSimilarityAvroDeserializer"
   value-deserializer-actions: "ru.practicum.ewm.stats.analyzer.UserActionAvroDeserializer"
+  consumer-analyzer-actions-group-id: "groupAnalyzerActionsConsumer"
+  consumer-analyzer-similarity-group-id: "groupAnalyzerSimilarityConsumer"
+  auto-offset-reset: "earliest"

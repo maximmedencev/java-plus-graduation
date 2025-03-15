@@ -42,8 +42,9 @@ public class PublicEventController {
 
     @GetMapping("/recommendations")
     List<EventFullDto> getRecommendations(HttpServletRequest request,
-                                          @RequestHeader("X-EWM-USER-ID") long userId) {
-        return publicEventService.getRecommendations(userId);
+                                          @RequestHeader("X-EWM-USER-ID") long userId,
+                                          @RequestParam("maxResults") int maxResults) {
+        return publicEventService.getRecommendations(userId, maxResults);
     }
 
     @GetMapping("/{eventId}")

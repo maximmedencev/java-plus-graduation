@@ -12,7 +12,7 @@ public interface PublicEventService {
 
     EventFullDto getBy(long eventId, long userId);
 
-    List<EventFullDto> getRecommendations(long userId);
+    List<EventFullDto> getRecommendations(long userId, int maxResults);
 
     void like(long eventId, long userId);
 }

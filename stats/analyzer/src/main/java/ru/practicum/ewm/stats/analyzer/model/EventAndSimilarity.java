@@ -8,6 +8,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class EventAndSimilarity {
-    long eventId;
-    double similarityScore;
+    private long eventId;
+    private double similarityScore;
 }

@@ -2,6 +2,7 @@ package ewm.eventandadditional.event.service.impl;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import ewm.client.grpcclient.AnalyzerClient;
 import ewm.client.grpcclient.CollectorClient;
 import ewm.eventandadditional.category.model.QCategory;
 import ewm.eventandadditional.event.mappers.EventMapper;
@@ -22,6 +23,7 @@ import ewm.interaction.feign.UserFeignClient;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +37,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -46,6 +49,7 @@ public class PublicEventServiceImpl implements PublicEventService {
     final JPAQueryFactory jpaQueryFactory;
     final UserFeignClient userFeignClient;
     final CollectorClient collectorClient;
+    final AnalyzerClient analyzerClient;
 
     private static final int TIME_BEFORE = 10;
 
@@ -65,12 +69,7 @@ public class PublicEventServiceImpl implements PublicEventService {
                 .orElseThrow(() -> new NotFoundException("Даты не заданы"))
                 .getEventDate();
 
-//        Map<String, Long> viewMap = statRestClient
-//                .stats(start, LocalDateTime.now(), uris.stream().toList(), false).stream()
-//                .collect(Collectors.groupingBy(ViewStatsDto::getUri, Collectors.summingLong(ViewStatsDto::getHits)));
-
         return events.stream().peek(shortDto -> {
-            //shortDto.setViews(viewMap.getOrDefault("/events/" + shortDto.getId(), 0L));
             shortDto.setConfirmedRequests(confirmedRequestsMap.getOrDefault(shortDto.getId(), 0L));
         }).toList();
     }
@@ -87,8 +86,6 @@ public class PublicEventServiceImpl implements PublicEventService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime start = now.minusYears(TIME_BEFORE);
         collectorClient.sendUserAction(userId, eventId, UserActionMessages.ActionTypeProto.ACTION_VIEW);
-//        statRestClient.stats(start, now, List.of("/events/" + eventId), true)
-//                .forEach(viewStatsDto -> event.setViews(viewStatsDto.getHits()));
 
         long confirmedRequests = requestFeignClient.countAllByEventIdAndStatusIs(eventId,
                 RequestStatus.CONFIRMED.toString());
@@ -97,8 +94,15 @@ public class PublicEventServiceImpl implements PublicEventService {
     }
 
     @Override
-    public List<EventFullDto> getRecommendations(long userId) {
-        return List.of();
+    public List<EventFullDto> getRecommendations(long userId, int maxResults) {
+        log.info("Получаю рекомендации для пользователья с id = {}", userId);
+        return eventRepository
+                .findAllByIdIn(analyzerClient
+                        .getRecommendationsForUser(userId, maxResults))
+                .stream()
+                .map(eventMapper::toEventFullDto)
+                .toList();
+
     }
 
     @Override

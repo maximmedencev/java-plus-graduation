@@ -21,8 +21,8 @@ import java.util.Map;
 public class AggregationStarter {
     private final AggregatorSimilarityService aggregatorSimilarityService;
     private final KafkaConsumer<String, UserActionAvro> kafkaConsumer;
-    Map<Long, Map<Long, Double>> weights = new HashMap<>();
-    Map<Long, Map<Long, Double>> sMinMap = new HashMap<>();
+    private Map<Long, Map<Long, Double>> weights = Collections.synchronizedMap(new HashMap<>());
+    private Map<Long, Map<Long, Double>> sMinMap = Collections.synchronizedMap(new HashMap<>());
 
     private static final Double VIEW_WEIGHT = 0.4;
     private static final Double REGISTER_WEIGHT = 0.8;
@@ -59,7 +59,7 @@ public class AggregationStarter {
                 double newEventAWeight = weight;
                 if (weights.get(userAction.getEventId()) == null
                         || weights.get(userAction.getEventId()).get(userAction.getUserId()) == null) {
-                    HashMap<Long, Double> hashMap = new HashMap<>();
+                    Map<Long, Double> hashMap = Collections.synchronizedMap(new HashMap<>());
                     weights.put(userAction.getEventId(), hashMap);
                     weights.get(userAction.getEventId()).putIfAbsent(userAction.getUserId(), 0.0);
                 } else {
@@ -145,7 +145,7 @@ public class AggregationStarter {
         long second = Math.max(eventA, eventB);
 
         sMinMap
-                .computeIfAbsent(first, e -> new HashMap<>())
+                .computeIfAbsent(first, e -> Collections.synchronizedMap(new HashMap<>()))
                 .put(second, sum);
     }
 }

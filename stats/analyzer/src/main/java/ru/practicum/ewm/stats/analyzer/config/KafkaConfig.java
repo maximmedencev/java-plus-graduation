@@ -22,9 +22,9 @@ public class KafkaConfig {
     private String keyDeserializer;
     private String valueDeserializerSimilarity;
     private String valueDeserializerActions;
-    private String consumerAnalyzerActionsGroupId = "groupAnalyzerActionsConsumer";
-    private String consumerAnalyzerSimilarityGroupId = "groupAnalyzerSimilarityConsumer";
-    private String autoOffsetReset = "earliest";
+    private String consumerAnalyzerActionsGroupId;
+    private String consumerAnalyzerSimilarityGroupId;
+    private String autoOffsetReset;
 
     @Bean
     public KafkaConsumer<String, EventSimilarityAvro> similarityKafkaConsumer() {

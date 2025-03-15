@@ -24,8 +24,8 @@ public class KafkaConfig {
     private String valueSerializer;
     private String keyDeserializer;
     private String valueDeserializer;
-    private String consumerGroupId = "groupAggregatorConsumer";
-    private String autoOffsetReset = "earliest";
+    private String consumerGroupId;
+    private String autoOffsetReset;
 
     @Bean
     public KafkaProducer<String, Object> kafkaProducer() {

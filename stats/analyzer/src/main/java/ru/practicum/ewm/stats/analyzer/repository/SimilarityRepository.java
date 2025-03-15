@@ -1,5 +1,6 @@
 package ru.practicum.ewm.stats.analyzer.repository;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -16,19 +17,19 @@ public interface SimilarityRepository extends JpaRepository<Similarity, Long> {
             "AND NOT (s.eventaId IN :interactedList " +
             "AND s.eventbId IN :interactedList) " +
             "ORDER BY s.score DESC")
-    List<Similarity> findSimilaritiesExcludingInteracted(
+    Page<Similarity> findSimilaritiesExcludingInteracted(
             @Param("eventId") Long eventId,
             @Param("interactedList") List<Long> interactedList,
             Pageable pageable
     );
 
-    @Query(value = "SELECT s.eventa_id FROM similarity s " +
-            "WHERE s.eventa_id IN :notInteractedList " +
-            "AND s.eventb_id IN :interactedList " +
-            "UNION " +
-            "SELECT s.eventb_id FROM similarity s " +
-            "WHERE s.eventa_id IN :interactedList " +
-            "AND s.eventb_id IN :notInteractedList " +
+    @Query(value = "SELECT CASE " +
+            "WHEN s.eventa_id IN :notInteractedList AND s.eventb_id IN :interactedList THEN s.eventa_id " +
+            "WHEN s.eventb_id IN :notInteractedList AND s.eventa_id IN :interactedList THEN s.eventb_id " +
+            "END AS event_id " +
+            "FROM similarity s " +
+            "WHERE (s.eventa_id IN :notInteractedList AND s.eventb_id IN :interactedList) " +
+            "   OR (s.eventb_id IN :notInteractedList AND s.eventa_id IN :interactedList) " +
             "ORDER BY s.score DESC",
             nativeQuery = true)
     List<Long> findMostSimilarEventsIds(
