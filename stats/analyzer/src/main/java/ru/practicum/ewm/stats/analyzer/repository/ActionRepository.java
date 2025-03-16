@@ -1,5 +1,7 @@
 package ru.practicum.ewm.stats.analyzer.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -28,8 +30,9 @@ public interface ActionRepository extends JpaRepository<Action, Long> {
     @Query("SELECT a.eventId " +
             "FROM Action a WHERE a.userId = :userId " +
             "ORDER BY a.timestamp")
-    Set<Long> findActionsByUserId(
-            @Param("userId") Long userId
+    Page<Long> findActionsByUserIdOrderByTimestamp(
+            @Param("userId") Long userId,
+            Pageable pageable
     );
 
     @Query("SELECT DISTINCT a1.eventId FROM Action a1 " +

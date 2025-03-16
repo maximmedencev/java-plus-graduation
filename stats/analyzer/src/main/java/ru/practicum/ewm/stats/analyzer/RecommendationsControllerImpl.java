@@ -6,6 +6,7 @@ import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.service.GrpcService;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import ru.practicum.ewm.stats.analyzer.model.EventAndSimilarity;
@@ -45,51 +46,55 @@ public class RecommendationsControllerImpl extends RecommendationsControllerGrpc
 
 
         List<Long> interactedEventIds = actionRepository
-                .findActionsByUserId(userId).stream().toList();
+                .findActionsByUserIdOrderByTimestamp(userId, pageable)
+                .getContent();
 
-        List<Long> notInteractedEventIds = actionRepository.findNotInteractedEventIdsByUserId(userId);
-        List<Long> mostSimilarEventsIds = similarityRepository.findMostSimilarEventsIds(
-                interactedEventIds,
-                notInteractedEventIds,
-                pageable);
+        if (!interactedEventIds.isEmpty()) {
 
-        for (int i = 0; i < mostSimilarEventsIds.size()
-                && i < NEIGHBORS_COUNT; i++) {
-            Map<Long, Double> eventsAndSimilarities = similarityRepository
-                    .findSimilarEvents(mostSimilarEventsIds.get(i), interactedEventIds.stream().toList())
-                    .stream()
-                    .collect(Collectors.toMap(
-                            EventAndSimilarity::getEventId,
-                            EventAndSimilarity::getSimilarityScore
-                    ));
+            List<Long> notInteractedEventIds = actionRepository.findNotInteractedEventIdsByUserId(userId);
+            List<Long> mostSimilarEventsIds = similarityRepository.findMostSimilarEventsIds(
+                    interactedEventIds,
+                    notInteractedEventIds,
+                    pageable);
 
-            Map<Long, Double> eventsAndRatings = eventFeignClient
-                    .getBy(eventsAndSimilarities.keySet())
-                    .stream()
-                    .collect(Collectors.toMap(
-                            EventFullDto::getId,
-                            EventFullDto::getRating
-                    ));
+            for (int i = 0; i < mostSimilarEventsIds.size()
+                    && i < NEIGHBORS_COUNT; i++) {
+                Map<Long, Double> eventsAndSimilarities = similarityRepository
+                        .findSimilarEvents(mostSimilarEventsIds.get(i), interactedEventIds.stream().toList())
+                        .stream()
+                        .collect(Collectors.toMap(
+                                EventAndSimilarity::getEventId,
+                                EventAndSimilarity::getSimilarityScore
+                        ));
 
-            double weightedMarksSum = 0.0;
-            for (Long eventId : eventsAndSimilarities.keySet()) {
-                weightedMarksSum += eventsAndSimilarities.get(eventId) * eventsAndRatings.get(eventId);
+                Map<Long, Double> eventsAndRatings = eventFeignClient
+                        .getBy(eventsAndSimilarities.keySet())
+                        .stream()
+                        .collect(Collectors.toMap(
+                                EventFullDto::getId,
+                                EventFullDto::getRating
+                        ));
+
+                double weightedMarksSum = 0.0;
+                for (Long eventId : eventsAndSimilarities.keySet()) {
+                    weightedMarksSum += eventsAndSimilarities.get(eventId) * eventsAndRatings.get(eventId);
+                }
+
+                double sumSimilarities = eventsAndSimilarities
+                        .values()
+                        .stream()
+                        .mapToDouble(Double::doubleValue)
+                        .sum();
+
+                double result = weightedMarksSum / sumSimilarities;
+
+                RecommendationsMessages.RecommendedEventProto event = RecommendationsMessages.RecommendedEventProto.newBuilder()
+                        .setEventId(mostSimilarEventsIds.get(i))
+                        .setScore(result)
+                        .build();
+                responseObserver.onNext(event);
+
             }
-
-            double sumSimilarities = eventsAndSimilarities
-                    .values()
-                    .stream()
-                    .mapToDouble(Double::doubleValue)
-                    .sum();
-
-            double result = weightedMarksSum / sumSimilarities;
-
-            RecommendationsMessages.RecommendedEventProto event = RecommendationsMessages.RecommendedEventProto.newBuilder()
-                    .setEventId(mostSimilarEventsIds.get(i))
-                    .setScore(result)
-                    .build();
-            responseObserver.onNext(event);
-
         }
         responseObserver.onCompleted();
 
