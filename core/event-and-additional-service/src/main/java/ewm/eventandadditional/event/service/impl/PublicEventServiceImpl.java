@@ -2,8 +2,8 @@ package ewm.eventandadditional.event.service.impl;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import ewm.client.StatRestClientImpl;
-import ewm.dto.ViewStatsDto;
+import ewm.client.grpcclient.AnalyzerClient;
+import ewm.client.grpcclient.CollectorClient;
 import ewm.eventandadditional.category.model.QCategory;
 import ewm.eventandadditional.event.mappers.EventMapper;
 import ewm.eventandadditional.event.model.Event;
@@ -16,15 +16,18 @@ import ewm.interaction.dto.eventandadditional.event.EventState;
 import ewm.interaction.dto.eventandadditional.event.PublicEventParam;
 import ewm.interaction.dto.request.RequestStatus;
 import ewm.interaction.dto.user.UserShortDto;
+import ewm.interaction.exception.NoRequestException;
 import ewm.interaction.exception.NotFoundException;
 import ewm.interaction.feign.RequestFeignClient;
 import ewm.interaction.feign.UserFeignClient;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.grpc.stats.action.UserActionMessages;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -34,6 +37,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -41,10 +45,11 @@ import java.util.stream.Collectors;
 public class PublicEventServiceImpl implements PublicEventService {
     final EventRepository eventRepository;
     final RequestFeignClient requestFeignClient;
-    final StatRestClientImpl statRestClient;
     final EventMapper eventMapper;
     final JPAQueryFactory jpaQueryFactory;
     final UserFeignClient userFeignClient;
+    final CollectorClient collectorClient;
+    final AnalyzerClient analyzerClient;
 
     private static final int TIME_BEFORE = 10;
 
@@ -64,18 +69,13 @@ public class PublicEventServiceImpl implements PublicEventService {
                 .orElseThrow(() -> new NotFoundException("Даты не заданы"))
                 .getEventDate();
 
-        Map<String, Long> viewMap = statRestClient
-                .stats(start, LocalDateTime.now(), uris.stream().toList(), false).stream()
-                .collect(Collectors.groupingBy(ViewStatsDto::getUri, Collectors.summingLong(ViewStatsDto::getHits)));
-
         return events.stream().peek(shortDto -> {
-            shortDto.setViews(viewMap.getOrDefault("/events/" + shortDto.getId(), 0L));
             shortDto.setConfirmedRequests(confirmedRequestsMap.getOrDefault(shortDto.getId(), 0L));
         }).toList();
     }
 
     @Override
-    public EventFullDto getBy(long eventId) {
+    public EventFullDto getBy(long eventId, long userId) {
         EventFullDto event = eventRepository.findById(eventId).map(eventMapper::toEventFullDto)
                 .orElseThrow(() -> new NotFoundException("Мероприятие с Id =" + eventId + " не найдено"));
 
@@ -85,14 +85,36 @@ public class PublicEventServiceImpl implements PublicEventService {
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime start = now.minusYears(TIME_BEFORE);
-
-        statRestClient.stats(start, now, List.of("/events/" + eventId), true)
-                .forEach(viewStatsDto -> event.setViews(viewStatsDto.getHits()));
+        collectorClient.sendUserAction(userId, eventId, UserActionMessages.ActionTypeProto.ACTION_VIEW);
 
         long confirmedRequests = requestFeignClient.countAllByEventIdAndStatusIs(eventId,
                 RequestStatus.CONFIRMED.toString());
         event.setConfirmedRequests(confirmedRequests);
         return event;
+    }
+
+    @Override
+    public List<EventFullDto> getRecommendations(long userId, int maxResults) {
+        log.info("Получаю рекомендации для пользователья с id = {}", userId);
+        return eventRepository
+                .findAllByIdIn(analyzerClient
+                        .getRecommendationsForUser(userId, maxResults))
+                .stream()
+                .map(eventMapper::toEventFullDto)
+                .toList();
+
+    }
+
+    @Override
+    public void like(long eventId, long userId) {
+        if (requestFeignClient.isRequestExist(eventId, userId)) {
+            collectorClient.sendUserAction(
+                    userId,
+                    eventId,
+                    UserActionMessages.ActionTypeProto.ACTION_LIKE);
+        } else {
+            throw new NoRequestException("Невозможно поставить лайк без заявки на участие");
+        }
     }
 
     private Map<Long, Long> getConfirmedRequestsMap(List<Long> eventIds) {

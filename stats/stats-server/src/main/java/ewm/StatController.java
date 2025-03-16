@@ -1,6 +1,5 @@
 package ewm;
 
-import ewm.client.StatsFeignClient;
 import ewm.dto.EndpointHitDto;
 import ewm.dto.RequestParamDto;
 import ewm.dto.ViewStatsDto;
@@ -24,7 +23,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class StatController implements StatsFeignClient {
+public class StatController {
     final StatService statService;
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 

@@ -1,7 +1,5 @@
 package ewm.eventandadditional.event.controller;
 
-import ewm.client.StatRestClient;
-import ewm.dto.EndpointHitDto;
 import ewm.eventandadditional.event.service.PublicEventService;
 import ewm.interaction.dto.eventandadditional.event.EventFullDto;
 import ewm.interaction.dto.eventandadditional.event.EventShortDto;
@@ -15,11 +13,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -30,7 +29,6 @@ import java.util.List;
 public class PublicEventController {
     final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     final PublicEventService publicEventService;
-    final StatRestClient statRestClient;
 
 
     @GetMapping
@@ -39,20 +37,26 @@ public class PublicEventController {
                                  @RequestParam(defaultValue = "10") int size,
                                  HttpServletRequest request) {
         List<EventShortDto> events = publicEventService.getAllBy(publicEventParam, PageRequest.of(from, size));
-        addHit("/events", request.getRemoteAddr());
         return events;
     }
 
+    @GetMapping("/recommendations")
+    List<EventFullDto> getRecommendations(HttpServletRequest request,
+                                          @RequestHeader("X-EWM-USER-ID") long userId,
+                                          @RequestParam("maxResults") int maxResults) {
+        return publicEventService.getRecommendations(userId, maxResults);
+    }
+
     @GetMapping("/{eventId}")
-    EventFullDto getBy(@PathVariable long eventId, HttpServletRequest request) {
-        EventFullDto event = publicEventService.getBy(eventId);
-        addHit("/events/" + eventId, request.getRemoteAddr());
+    EventFullDto getBy(@PathVariable long eventId, HttpServletRequest request,
+                       @RequestHeader("X-EWM-USER-ID") long userId) {
+        EventFullDto event = publicEventService.getBy(eventId, userId);
         return event;
     }
 
-    void addHit(String uri, String ip) {
-        LocalDateTime now = LocalDateTime.now();
-        EndpointHitDto hitDto = new EndpointHitDto("main-server", uri, ip, now.format(dateTimeFormatter));
-        statRestClient.addHit(hitDto);
+    @PutMapping("/{eventId}/like")
+    void like(@PathVariable long eventId, HttpServletRequest request,
+              @RequestHeader("X-EWM-USER-ID") long userId) {
+        publicEventService.like(eventId, userId);
     }
 }

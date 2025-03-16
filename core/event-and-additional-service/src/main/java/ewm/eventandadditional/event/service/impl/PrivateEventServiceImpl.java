@@ -2,8 +2,6 @@ package ewm.eventandadditional.event.service.impl;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import ewm.client.StatRestClientImpl;
-import ewm.dto.ViewStatsDto;
 import ewm.eventandadditional.category.mapper.CategoryMapper;
 import ewm.eventandadditional.category.mapper.User;
 import ewm.eventandadditional.category.mapper.UserMapper;
@@ -52,7 +50,6 @@ public class PrivateEventServiceImpl implements PrivateEventService {
     final UserMapper userMapper;
     final CategoryMapper categoryMapper;
     final EventMapper eventMapper;
-    final StatRestClientImpl statRestClient;
     final JPAQueryFactory jpaQueryFactory;
     final RequestFeignClient requestFeignClient;
 
@@ -72,12 +69,12 @@ public class PrivateEventServiceImpl implements PrivateEventService {
                 .orElseThrow(() -> new NotFoundException("Даты не заданы"))
                 .getEventDate();
 
-        Map<String, Long> viewMap = statRestClient
-                .stats(start, LocalDateTime.now(), uris.stream().toList(), false).stream()
-                .collect(Collectors.groupingBy(ViewStatsDto::getUri, Collectors.summingLong(ViewStatsDto::getHits)));
+//        Map<String, Long> viewMap = statRestClient
+//                .stats(start, LocalDateTime.now(), uris.stream().toList(), false).stream()
+//                .collect(Collectors.groupingBy(ViewStatsDto::getUri, Collectors.summingLong(ViewStatsDto::getHits)));
 
         return events.stream().peek(shortDto -> {
-            shortDto.setViews(viewMap.getOrDefault("/events/" + shortDto.getId(), 0L));
+            //shortDto.setViews(viewMap.getOrDefault("/events/" + shortDto.getId(), 0L));
             shortDto.setConfirmedRequests(confirmedRequestsMap.getOrDefault(shortDto.getId(), 0L));
         }).toList();
     }

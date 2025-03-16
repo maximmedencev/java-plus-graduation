@@ -16,4 +16,8 @@ public interface RequestFeignClient {
     @GetMapping("/count/{eventId}/{requestStatus}")
     Long countAllByEventIdAndStatusIs(@PathVariable Long eventId,
                                       @PathVariable String requestStatus);
+
+    @GetMapping("/exist/{eventId}/{userId}")
+    boolean isRequestExist(@PathVariable Long eventId,
+                           @PathVariable Long userId);
 }

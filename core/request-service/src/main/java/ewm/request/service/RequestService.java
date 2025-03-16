@@ -8,4 +8,6 @@ public interface RequestService {
 
     Long countAllByEventIdAndStatusIs(Long eventId,
                                       String requestStatus);
+
+    boolean isRequestExist(long userId, long eventId);
 }

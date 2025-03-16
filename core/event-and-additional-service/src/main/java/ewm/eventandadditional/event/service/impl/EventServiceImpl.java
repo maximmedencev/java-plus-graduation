@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -49,5 +50,11 @@ public class EventServiceImpl implements EventService {
                 userFeignClient.findAllBy(List.of(optionalEvent.get().getInitiatorId()),
                         0, 10).getFirst()));
         return eventFullDto;
+    }
+
+    @Override
+    public List<EventFullDto> getBy(Set<Long> eventIds) {
+        List<Event> events = eventRepository.findAllByIdIn(eventIds);
+        return events.stream().map(eventMapper::toEventFullDto).toList();
     }
 }
