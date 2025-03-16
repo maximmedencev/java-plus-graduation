@@ -8,7 +8,6 @@ import org.springframework.data.repository.query.Param;
 import ru.practicum.ewm.stats.analyzer.model.Action;
 
 import java.util.List;
-import java.util.Set;
 
 public interface ActionRepository extends JpaRepository<Action, Long> {
 
